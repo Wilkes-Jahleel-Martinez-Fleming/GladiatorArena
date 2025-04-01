@@ -123,18 +123,17 @@ func handleKeyPress(lobbyID, playerID int) {
 		for {
 		fmt.Print("Press a key to send to the server: ")
 		fmt.Scanf("%s", &key)
-
-		if len(key) == 1 {
-			switch key {
-			case "1", "2", "3":
-				break
-			default:
+			
+			if len(key) == 1 {
+				if key == "1" || key == "2" || key == "3" {
+					break 
+				}
 				fmt.Println("Invalid input! Please enter either 1, 2, or 3.")
+			} else {
+				fmt.Println("Invalid input! Please enter only one character.")
 			}
-		} else {
-			fmt.Println("Invalid input! Please enter only one character.")
 		}
-
+		
 		data := KeyPressData{Key: key}
 		jsonData, _ := json.Marshal(data)
 		url := fmt.Sprintf("http://146.94.10.168:8080/keypress?player_id=%d&lobby_id=%d", playerID, lobbyID)
