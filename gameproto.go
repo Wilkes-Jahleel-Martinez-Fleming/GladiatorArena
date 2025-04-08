@@ -6,12 +6,6 @@ import (
 	"math/rand"
 )
 
-/*
-Use goroutines to manage the players' moves. Maybe use a switch statement (select statement) to differentiate between the cases of gladiators' attack speeds.
-We need a playerCount that stores the current amount of players in the server. Maybe we could use concurrency to decide what players get paired together. Maybe each fight
-would be a goroutine.
-
-*/
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
