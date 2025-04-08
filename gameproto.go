@@ -22,13 +22,14 @@ type Gladiator struct {
 	attack int
 	defense int
 	speed int
+	isDead bool
 }
 
 func genGladiator(id int) Gladiator {
 
 	return Gladiator{
 		id: id,
-		health: rand.Intn(50) + 50,
+		health: rand.Intn(25) + 75,
 		attack: rand.Intn(25) + 10,
 		defense: rand.Intn(5) + 5,
 		speed: rand.Intn(10) + 5,
@@ -58,6 +59,19 @@ func attack(rglad *Gladiator, gglad Gladiator) {
 	
 }
 
+func powAttack(rglad *Gladiator, gglad *Gladiator) {
+	gglad.speed = 0
+	dmg := gglad.attack * 2 + rand.Intn(10) - 5 - rglad.defense - rand.Intn(5) + 2
+	rglad.health = rglad.health - dmg
+
+	fmt.Printf("\nPlayer %d gladiator took %d damage.\n\n", rglad.id, dmg)
+}
+
+func defend(glad *Gladiator){
+glad.defense += 5
+fmt.Printf("\nPlayer %d gladiator is defending. Defense increased.\n\n", glad.id)
+}
+
 
 func main() {
 //	rand.Seed(time.Now().UnixNano())
@@ -65,6 +79,9 @@ func main() {
 	var p2move int
 	p1glad := genGladiator(1)
 	p2glad := genGladiator(2)
+
+	p1baseSpeed := p1glad.speed
+	p2baseSpeed := p2glad.speed
 
 	fmt.Printf("P1 Gladiator Stats: ")
 	
@@ -75,46 +92,24 @@ func main() {
 		fmt.Printf("P2 gladiator health = %d\n", p2glad.health)
 		fmt.Println("P2 move (1 for attack 2 for defend):")
 		fmt.Scan(&p2move)
-		/*
-		if p1glad.speed > p2glad.speed {
-			if p1move == 1 {
-				attack(&p2glad, p1glad)
-			} else if p1move == 2 {
-				//currently does nothing
-			} else {
-				fmt.Println("Invalid move entered. Turn skipped.")
-			}
-			if p2move == 1 {
-				attack(&p1glad, p2glad)
-			} else if p2move == 2 {
-				//currently does nothing
-			} else {
-				fmt.Println("Invalid move entered. Turn skipped.")
-			}
-		}else {
-			if p1move == 1 {
-				attack(&p2glad, p1glad)
-			} else if p1move == 2 {
-				//currently does nothing
-			} else {
-				fmt.Println("Invalid move entered. Turn skipped.")
-			}
-			if p2move == 1 {
-				attack(&p1glad, p2glad)
-			} else if p2move == 2 {
-				//currently does nothing
-			} else {
-				fmt.Println("Invalid move entered. Turn skipped.")
-			}
-			
+		
+		// Adjust speed after moves are decided
+		if p1move == 2 {
+			p1glad.speed = 0 // Powerful attack reduces speed
 		}
-		*/
+		if p2move == 2 {
+			p2glad.speed = 0 // Powerful attack reduces speed
+		}
+
 		if p1glad.speed > p2glad.speed {
+
    			switch p1move {
   			case 1:
         			attack(&p2glad, p1glad)
 			case 2:
-        			// currently does nothing
+        			powAttack(&p2glad, &p1glad)
+			case 3:
+				defend(&p1glad)
     			default:
 				fmt.Println("Invalid move entered. Turn skipped.")
     			}
@@ -123,29 +118,39 @@ func main() {
     			case 1:
         			attack(&p1glad, p2glad)
     			case 2:
-        			// currently does nothing
+        			powAttack(&p1glad, &p2glad)
+			case 3:
+				defend(&p2glad)
     			default:
         			fmt.Println("Invalid move entered. Turn skipped.")
     			}
-			} else {
-    			switch p1move {
-    			case 1:
-        			attack(&p2glad, p1glad)
-    			case 2:
-        			// currently does nothing
-    			default:
-        			fmt.Println("Invalid move entered. Turn skipped.")
-    			}
-    			
+		} else {
     			switch p2move {
     			case 1:
         			attack(&p1glad, p2glad)
     			case 2:
-        			// currently does nothing
+        			powAttack(&p1glad, &p2glad)
+			case 3:
+				defend(&p2glad)
+    			default:
+        			fmt.Println("Invalid move entered. Turn skipped.")
+    			}
+    			
+    			switch p1move {
+    			case 1:
+        			attack(&p2glad, p1glad)
+    			case 2:
+        			powAttack(&p2glad, &p1glad)
+			case 3:
+				defend(&p1glad)
     			default:
         			fmt.Println("Invalid move entered. Turn skipped.")
     			}
 		}
+		
+		// Reset speeds after the round
+		p1glad.speed = p1baseSpeed
+		p2glad.speed = p2baseSpeed
 
 	}
 
