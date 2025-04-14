@@ -20,12 +20,12 @@ apply a execute move func that just changes the health value based on the dmg.
 
 Jahleel's Tasks
 
-based on the updates that andrew do to the gameproto.go
+1)based on the updates that andrew do to the gameproto.go
 change the move logic to be more robust and in line with Andrew's Changes.
-add a display of gladiator values for each player such as their stats.
-change their nickname on the client. and server so instead of p1 p2 it would be more custumizable.
-add 2sec delay per message on client console.
+2)(DONE)Add a display of gladiator values for each player such as their stats.
+3)change their nickname on the client. and server so instead of p1 p2 it would be more custumizable.
+4)add 2sec delay per message on client console.
 
 extra task for both:
 
-allow each player to pick from 10 random gladiators generated for their 1 vs 1 battle.
+1)Allow each player to pick from 10 random gladiators generated for their 1 vs 1 battle.
