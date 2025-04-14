@@ -152,6 +152,7 @@ func joinLobby(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message":   fmt.Sprintf("Joined lobby %d as player %d", requestData.LobbyID, playerID+1),
 		"player_id": playerID + 1,
+		"your_stats": lobby.Players[playerID].Gladiator,
 	})
 }
 
@@ -316,6 +317,6 @@ func setupRoutes() {
 func main() {
 	go consoleListener()
 	setupRoutes()
-	fmt.Println("Server is running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("Server is running on http://146.94.10.168:8080")
+	log.Fatal(http.ListenAndServe("146.94.10.168:8080", nil))
 }

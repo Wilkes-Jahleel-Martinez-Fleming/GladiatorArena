@@ -57,7 +57,7 @@ func createLobby() {
 	data := map[string]string{"password": password}
 	jsonData, _ := json.Marshal(data)
 
-	resp, err := http.Post("http://localhost:8080/create", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post("http://146.94.10.168:8080/create", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Println("Error creating lobby:", err)
 		return
@@ -101,7 +101,7 @@ func joinLobbyWithID(lobbyID int, password string) {
 	}
 	jsonData, _ := json.Marshal(data)
 
-	resp, err := http.Post("http://localhost:8080/join", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post("http://146.94.10.168:8080/join", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Println("Error joining lobby:", err)
 		return
@@ -122,6 +122,16 @@ func joinLobbyWithID(lobbyID int, password string) {
 
 	playerID := int(response["player_id"].(float64))
 	fmt.Printf("Joined lobby %d as Player %d\n", lobbyID, playerID)
+	
+	yourStatsJSON, _ := json.Marshal(response["your_stats"])
+	var yourStats map[string]interface{}
+	json.Unmarshal(yourStatsJSON, &yourStats)
+	
+	fmt.Println("\n=== Gladiator Stats ===")
+	fmt.Println("Your Gladiator:")
+	fmt.Printf("Health: %v | Attack: %v | Defense: %v | Speed: %v\n",
+	yourStats["health"], yourStats["attack"], yourStats["defense"], yourStats["speed"])
+		
 	handleKeyPress(lobbyID, playerID)
 }
 
@@ -136,7 +146,7 @@ func handleKeyPress(lobbyID, playerID int) {
 
         data := KeyPressData{Key: key}
         jsonData, _ := json.Marshal(data)
-        url := fmt.Sprintf("http://localhost:8080/keypress?player_id=%d&lobby_id=%d", playerID, lobbyID)
+        url := fmt.Sprintf("http://146.94.10.168:8080/keypress?player_id=%d&lobby_id=%d", playerID, lobbyID)
 
         resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
         if err != nil {
