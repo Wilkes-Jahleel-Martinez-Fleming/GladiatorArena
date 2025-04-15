@@ -34,3 +34,8 @@ change the move logic to be more robust and in line with Andrew's Changes.
 extra task for both:
 
 1)Allow each player to pick from 10 random gladiators generated for their 1 vs 1 battle.
+
+04/15/2025
+Bugs to fix. handle vicotry more gracefully when one player is not attacking.
+creating a lobby got double 8080 display
+do the defense to potion logic.
