@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+var nickname string
+
 type KeyPressData struct {
 	Key string `json:"key"`
 }
@@ -24,6 +26,9 @@ func readInput(prompt string) string {
 }
 
 func main() {
+
+	nickname = readInput("Enter your nickname: ") 
+	
 	for {
 		fmt.Println("\n=== Main Menu ===")
 		fmt.Println("1. Create Lobby")
@@ -79,7 +84,8 @@ func createLobby() {
 
 	fmt.Printf("Lobby created! ID: %d\n", lobbyID)
 	fmt.Println("Waiting for another player to join...")
-	joinLobbyWithID(lobbyID, password)
+	joinLobbyWithID(lobbyID, password, nickname)
+
 }
 
 func joinLobby() {
@@ -91,10 +97,11 @@ func joinLobby() {
 	}
 
 	password := readInput("Enter Lobby Password: ")
-	joinLobbyWithID(lobbyID, password)
+	joinLobbyWithID(lobbyID, password, nickname)
+
 }
 
-func joinLobbyWithID(lobbyID int, password string) {
+func joinLobbyWithID(lobbyID int, password string, nickname string) {
 	data := map[string]interface{}{
 		"lobby_id": lobbyID,
 		"password": password,

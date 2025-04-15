@@ -37,6 +37,7 @@ type KeyPressData struct {
 
 type Player struct {
 	ID        int       `json:"id"`
+	Nickname  String    `json:"nickname`
 	Gladiator Gladiator `json:"gladiator"`
 }
 
@@ -119,6 +120,340 @@ func joinLobby(w http.ResponseWriter, r *http.Request) {
 	var requestData struct {
 		LobbyID  int    `json:"lobby_id"`
 		Password string `json:"password"`
+		Nickname  String    `json:"nickname`
+	Gladiator Gladiator `json:"gladiator"`
+}
+
+type Lobby struct {
+	ID           int
+	Password     string
+	Players      [2]*Player
+	PlayerCount  int
+	mu           sync.Mutex
+	readyCount   int
+	cond         *sync.Cond
+	GameOver     bool `json:"game_over"`
+	Winner       int  `json:"winner"`
+	RoundResults map[string]interface{}
+}
+
+var lobbies = make(map[int]*Lobby)
+var lobbyIDCounter = 1
+var mu sync.Mutex
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func attack(defender *Gladiator, attacker Gladiator) int {
+	dmg := attacker.Attack + rand.Intn(10) - 5 - defender.Defense - rand.Intn(5) + 2
+	if dmg < 0 {
+		dmg = 0
+	}
+	defender.Health -= dmg
+	return dmg
+}
+
+func powAttack(defender *Gladiator, attacker *Gladiator) int {
+	attacker.Speed = 0
+	dmg := attacker.Attack*2 + rand.Intn(10) - 5 - defender.Defense - rand.Intn(5) + 2
+	if dmg < 0 {
+		dmg = 0
+	}
+	defender.Health -= dmg
+	return dmg
+}
+
+func defend(glad *Gladiator) {
+	glad.Defense += 5
+}
+
+func createLobby(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var requestData struct {
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		http.Error(w, `{"error": "Invalid input"}`, http.StatusBadRequest)
+		return
+	}
+
+	lobbyID := lobbyIDCounter
+	lobbyIDCounter++
+
+	lobby := &Lobby{
+		ID:          lobbyID,
+		Password:    requestData.Password,
+		PlayerCount: 0,
+		RoundResults: make(map[string]interface{}),
+	}
+	lobby.cond = sync.NewCond(&lobby.mu)
+	lobbies[lobbyID] = lobby
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{"lobby_id": lobbyID})
+}
+
+func joinLobby(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var requestData struct {
+		LobbyID  int    `json:"lobby_id"`
+		Password string `json:"password"`
+		Nickname  String    `json:"nickname`
+	Gladiator Gladiator `json:"gladiator"`
+}
+
+type Lobby struct {
+	ID           int
+	Password     string
+	Players      [2]*Player
+	PlayerCount  int
+	mu           sync.Mutex
+	readyCount   int
+	cond         *sync.Cond
+	GameOver     bool `json:"game_over"`
+	Winner       int  `json:"winner"`
+	RoundResults map[string]interface{}
+}
+
+var lobbies = make(map[int]*Lobby)
+var lobbyIDCounter = 1
+var mu sync.Mutex
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func attack(defender *Gladiator, attacker Gladiator) int {
+	dmg := attacker.Attack + rand.Intn(10) - 5 - defender.Defense - rand.Intn(5) + 2
+	if dmg < 0 {
+		dmg = 0
+	}
+	defender.Health -= dmg
+	return dmg
+}
+
+func powAttack(defender *Gladiator, attacker *Gladiator) int {
+	attacker.Speed = 0
+	dmg := attacker.Attack*2 + rand.Intn(10) - 5 - defender.Defense - rand.Intn(5) + 2
+	if dmg < 0 {
+		dmg = 0
+	}
+	defender.Health -= dmg
+	return dmg
+}
+
+func defend(glad *Gladiator) {
+	glad.Defense += 5
+}
+
+func createLobby(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var requestData struct {
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		http.Error(w, `{"error": "Invalid input"}`, http.StatusBadRequest)
+		return
+	}
+
+	lobbyID := lobbyIDCounter
+	lobbyIDCounter++
+
+	lobby := &Lobby{
+		ID:          lobbyID,
+		Password:    requestData.Password,
+		PlayerCount: 0,
+		RoundResults: make(map[string]interface{}),
+	}
+	lobby.cond = sync.NewCond(&lobby.mu)
+	lobbies[lobbyID] = lobby
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{"lobby_id": lobbyID})
+}
+
+func joinLobby(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var requestData struct {
+		LobbyID  int    `json:"lobby_id"`
+		Password string `json:"password"`
+		Nickname  String    `json:"nickname`
+	Gladiator Gladiator `json:"gladiator"`
+}
+
+type Lobby struct {
+	ID           int
+	Password     string
+	Players      [2]*Player
+	PlayerCount  int
+	mu           sync.Mutex
+	readyCount   int
+	cond         *sync.Cond
+	GameOver     bool `json:"game_over"`
+	Winner       int  `json:"winner"`
+	RoundResults map[string]interface{}
+}
+
+var lobbies = make(map[int]*Lobby)
+var lobbyIDCounter = 1
+var mu sync.Mutex
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func attack(defender *Gladiator, attacker Gladiator) int {
+	dmg := attacker.Attack + rand.Intn(10) - 5 - defender.Defense - rand.Intn(5) + 2
+	if dmg < 0 {
+		dmg = 0
+	}
+	defender.Health -= dmg
+	return dmg
+}
+
+func powAttack(defender *Gladiator, attacker *Gladiator) int {
+	attacker.Speed = 0
+	dmg := attacker.Attack*2 + rand.Intn(10) - 5 - defender.Defense - rand.Intn(5) + 2
+	if dmg < 0 {
+		dmg = 0
+	}
+	defender.Health -= dmg
+	return dmg
+}
+
+func defend(glad *Gladiator) {
+	glad.Defense += 5
+}
+
+func createLobby(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var requestData struct {
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		http.Error(w, `{"error": "Invalid input"}`, http.StatusBadRequest)
+		return
+	}
+
+	lobbyID := lobbyIDCounter
+	lobbyIDCounter++
+
+	lobby := &Lobby{
+		ID:          lobbyID,
+		Password:    requestData.Password,
+		PlayerCount: 0,
+		RoundResults: make(map[string]interface{}),
+	}
+	lobby.cond = sync.NewCond(&lobby.mu)
+	lobbies[lobbyID] = lobby
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{"lobby_id": lobbyID})
+}
+
+func joinLobby(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var requestData struct {
+		LobbyID  int    `json:"lobby_id"`
+		Password string `json:"password"`
+		Nickname  String    `json:"nickname`
+	Gladiator Gladiator `json:"gladiator"`
+}
+
+type Lobby struct {
+	ID           int
+	Password     string
+	Players      [2]*Player
+	PlayerCount  int
+	mu           sync.Mutex
+	readyCount   int
+	cond         *sync.Cond
+	GameOver     bool `json:"game_over"`
+	Winner       int  `json:"winner"`
+	RoundResults map[string]interface{}
+}
+
+var lobbies = make(map[int]*Lobby)
+var lobbyIDCounter = 1
+var mu sync.Mutex
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func attack(defender *Gladiator, attacker Gladiator) int {
+	dmg := attacker.Attack + rand.Intn(10) - 5 - defender.Defense - rand.Intn(5) + 2
+	if dmg < 0 {
+		dmg = 0
+	}
+	defender.Health -= dmg
+	return dmg
+}
+
+func powAttack(defender *Gladiator, attacker *Gladiator) int {
+	attacker.Speed = 0
+	dmg := attacker.Attack*2 + rand.Intn(10) - 5 - defender.Defense - rand.Intn(5) + 2
+	if dmg < 0 {
+		dmg = 0
+	}
+	defender.Health -= dmg
+	return dmg
+}
+
+func defend(glad *Gladiator) {
+	glad.Defense += 5
+}
+
+func createLobby(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var requestData struct {
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		http.Error(w, `{"error": "Invalid input"}`, http.StatusBadRequest)
+		return
+	}
+
+	lobbyID := lobbyIDCounter
+	lobbyIDCounter++
+
+	lobby := &Lobby{
+		ID:          lobbyID,
+		Password:    requestData.Password,
+		PlayerCount: 0,
+		RoundResults: make(map[string]interface{}),
+	}
+	lobby.cond = sync.NewCond(&lobby.mu)
+	lobbies[lobbyID] = lobby
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{"lobby_id": lobbyID})
+}
+
+func joinLobby(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var requestData struct {
+		LobbyID  int    `json:"lobby_id"`
+		Password string `json:"password"`
+		Nickname string `json:"nickname"`
+		
 	}
 	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
 		http.Error(w, `{"error": "Invalid input"}`, http.StatusBadRequest)
@@ -145,6 +480,7 @@ func joinLobby(w http.ResponseWriter, r *http.Request) {
 	lobby.PlayerCount++
 	lobby.Players[playerID] = &Player{
 		ID:        playerID + 1,
+		Nickname:  requestData.Nickname,
 		Gladiator: genGladiator(playerID + 1),
 	}
 
