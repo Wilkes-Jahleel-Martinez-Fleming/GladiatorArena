@@ -1,3 +1,8 @@
+1.0 VERSION are files: updatedClient.go and updatedServer.go
+
+2.0 VERSION with ATB combat are files: updatedClientATB.go and updatedServerATB.go
+
+
 This README will be updated with progress.
 
 added first revision of code as separate instances. next step is to implement code together to create simple game simulation between 2 players.
