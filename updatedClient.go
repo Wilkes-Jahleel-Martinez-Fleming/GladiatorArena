@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 )
-
 var nickname string
 
 type KeyPressData struct {
@@ -27,9 +26,9 @@ func readInput(prompt string) string {
 
 func main() {
 
-	nickname = readInput("Enter your nickname: ") 
+		nickname = readInput("Enter your nickname: ") 	
 	
-	for {
+	for {		
 		fmt.Println("\n=== Main Menu ===")
 		fmt.Println("1. Create Lobby")
 		fmt.Println("2. Join Lobby")
@@ -105,6 +104,7 @@ func joinLobbyWithID(lobbyID int, password string, nickname string) {
 	data := map[string]interface{}{
 		"lobby_id": lobbyID,
 		"password": password,
+		"nickname": nickname,
 	}
 	jsonData, _ := json.Marshal(data)
 
@@ -173,31 +173,42 @@ func handleKeyPress(lobbyID, playerID int) {
             return
         }
 
-        // Safe type assertions
-        p1Health, ok1 := response["p1_health"].(float64)
-        p2Health, ok2 := response["p2_health"].(float64)
-        p1Dmg, ok3 := response[fmt.Sprintf("p%d_dmg", playerID)].(float64)
-        p2Dmg, ok4 := response[fmt.Sprintf("p%d_dmg", 3-playerID)].(float64)
-        gameOver, ok5 := response["game_over"].(bool)
-
-        if !ok1 || !ok2 || !ok3 || !ok4 || !ok5 {
-            fmt.Println("Error: Invalid server response format")
-            return
+        // Get names
+        p1Name := response["p1_name"].(string)
+        p2Name := response["p2_name"].(string)
+        yourName := p1Name
+        opponentName := p2Name
+        if playerID == 2 {
+            yourName = p2Name
+            opponentName = p1Name
         }
 
-        fmt.Printf("\n=== Round Results ===\n")
-        fmt.Printf("Player 1 Health: %d\n", int(p1Health))
-        fmt.Printf("Player 2 Health: %d\n", int(p2Health))
-        fmt.Printf("Damage Dealt: You=%d, Opponent=%d\n", int(p1Dmg), int(p2Dmg))
+        // Get health and damage
+        p1Health := int(response["p1_health"].(float64))
+        p2Health := int(response["p2_health"].(float64))
+        yourDmg := int(response[fmt.Sprintf("p%d_dmg", playerID)].(float64))
+        opponentDmg := int(response[fmt.Sprintf("p%d_dmg", 3-playerID)].(float64))
+        gameOver := response["game_over"].(bool)
 
+        // Display results
+        fmt.Printf("\n=== Round Results ===\n")
+        fmt.Printf("%s's Health: %d\n", p1Name, p1Health)
+        fmt.Printf("%s's Health: %d\n", p2Name, p2Health)
+        fmt.Printf("Damage Dealt: %s=%d, %s=%d\n", yourName, yourDmg, opponentName, opponentDmg)
+
+        // Handle game over
         if gameOver {
-            if winner, ok := response["winner"].(float64); ok && int(winner) == playerID {
-                fmt.Println("\nVICTORY! You win the battle!")
+            winnerName := response["winner_name"].(string)
+            if winnerName == yourName {
+                fmt.Printf("\nVICTORY! %s wins the battle!\n", yourName)
             } else {
-                fmt.Println("\nDEFEAT! You have been slain!")
+                fmt.Printf("\nDEFEAT! %s has been slain by %s!\n", yourName, winnerName)
             }
             fmt.Println("\nReturning to main menu...")
             return
         }
     }
+
+	
+	
 }
