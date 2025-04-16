@@ -135,48 +135,72 @@ func joinLobbyWithID(lobbyID int, password string) {
 	handleKeyPress(lobbyID, playerID)
 }
 
-func handleKeyPress(lobbyID, playerID int) {
-	for {
-		// Check ATB status
-		canMove, atb, err := checkATB(lobbyID, playerID)
-		if err != nil {
-			fmt.Printf("\nError checking ATB: %v\n", err)
-			time.Sleep(1 * time.Second)
-			continue
-		}
-
-		if !canMove {
-			fmt.Printf("\r[Waiting] ATB: %d%%", atb)
-			time.Sleep(500 * time.Millisecond)
-			continue
-		}
-
-		fmt.Printf("\n[READY] Enter move (1:Attack 2:Power 3:Defend): ")
-		move := readInput("")
-
-		if move != "1" && move != "2" && move != "3" {
-			fmt.Println("Invalid move! Use 1, 2, or 3.")
-			continue
-		}
-
-		result, err := submitMove(lobbyID, playerID, move)
-		if err != nil {
-			fmt.Println("Error submitting move:", err)
-			continue
-		}
-
-		printBattleResult(result, playerID)
-		if result.GameOver {
-			if result.Winner == playerID {
-				fmt.Println("\nVICTORY! You won the battle!")
-			} else {
-				fmt.Println("\nDEFEAT! You were defeated!")
-			}
-			return
-		}
-	}
+func clearLine() {
+    fmt.Print("\033[2K\r") // ANSI escape sequence to clear line
 }
 
+func handleKeyPress(lobbyID, playerID int) {
+    gameOverChan := make(chan bool, 1)
+    moveChan := make(chan struct{}) // Empty struct for synchronization
+    
+    // Start the dedicated polling goroutine
+    go pollGameState(lobbyID, playerID, gameOverChan, moveChan)
+
+    for {
+        select {
+        case <-gameOverChan:
+            time.Sleep(2 * time.Second)
+            return
+
+        default:
+            // Check ATB
+            canMove, atb, err := checkATB(lobbyID, playerID)
+            if err != nil || !canMove {
+                fmt.Printf("\rWaiting for ATB: %d%%", atb)
+                time.Sleep(300 * time.Millisecond)
+                continue
+            }
+
+            // Signal poller to pause updates
+            moveChan <- struct{}{}
+            
+            // Get player input
+            fmt.Printf("\n[READY] Enter move (1:Attack 2:Power 3:Defend): ")
+            move := readInput("")
+            
+            // Resume updates
+            moveChan <- struct{}{}
+
+            // Process move
+            if move != "1" && move != "2" && move != "3" {
+                fmt.Println("Invalid move! Use 1, 2, or 3.")
+                continue
+            }
+
+            result, err := submitMove(lobbyID, playerID, move)
+            if err != nil {
+                fmt.Println("Error submitting move:", err)
+                continue
+            }
+
+	     // Using the restored function
+		
+	
+            // Check if game ended
+            if result.GameOver {
+                clearLine()
+                if result.Winner == playerID {
+                    fmt.Println("\nVICTORY! You won the battle!")
+                } else {
+                    fmt.Println("\nDEFEAT! You were defeated!")
+                }
+                time.Sleep(2 * time.Second)
+                return
+            }
+            printBattleResult(result, playerID)
+        }
+    }
+}
 func checkATB(lobbyID, playerID int) (bool, int, error) {
 	url := fmt.Sprintf("http://146.94.10.168:8080/keypress?player_id=%d&lobby_id=%d&check_atb=1", 
 		playerID, lobbyID)
@@ -223,14 +247,102 @@ func submitMove(lobbyID, playerID int, move string) (*BattleResult, error) {
 	return &result, nil
 }
 
+func pollGameState(lobbyID, playerID int, gameOverChan chan bool, moveChan chan struct{}) {
+    ticker := time.NewTicker(300 * time.Millisecond)
+    defer ticker.Stop()
+
+    for {
+        select {
+        case <-ticker.C:
+            // Check if we should pause updates (during player input)
+            select {
+            case <-moveChan:
+                // If we get a signal, pause updates until we get another
+                <-moveChan
+                continue
+            default:
+                // Proceed with normal update
+            }
+
+            // Fetch game state
+            url := fmt.Sprintf("http://146.94.10.168:8080/gamestate?lobby_id=%d", lobbyID)
+            resp, err := http.Get(url)
+            if err != nil {
+                continue
+            }
+
+            var state struct {
+                P1Name    string `json:"p1_name"`
+                P2Name    string `json:"p2_name"`
+                P1Health  int    `json:"p1_health"`
+                P2Health  int    `json:"p2_health"`
+                GameOver  bool   `json:"game_over"`
+                Winner    int    `json:"winner"`
+            }
+
+            if err := json.NewDecoder(resp.Body).Decode(&state); err != nil {
+                resp.Body.Close()
+                continue
+            }
+            resp.Body.Close()
+
+            // Handle game over
+            if state.GameOver {
+                clearLine()
+                if state.Winner == playerID {
+                    fmt.Println("\nTaking you back to Main Menu")
+                } else {
+                    fmt.Println("\nTaking you back to Main Menu")
+                }
+                gameOverChan <- true
+                return
+            }
+
+            // Update display
+            clearLine()
+            if playerID == 1 {
+                fmt.Printf("%s: %d HP | %s: %d HP", state.P1Name, state.P1Health, state.P2Name, state.P2Health)
+            } else {
+                fmt.Printf("%s: %d HP | %s: %d HP", state.P2Name, state.P2Health, state.P1Name, state.P1Health)
+            }
+
+        case <-gameOverChan:
+            // Emergency exit
+            return
+        }
+    }
+}
+
+
+func playerSelect(p1, p2, playerID int) int {
+    if playerID == 1 {
+        return p1
+    }
+    return p2
+}
+
 func printBattleResult(result *BattleResult, playerID int) {
-	fmt.Println("\n=== BATTLE ===")
-	fmt.Printf("%s: %d HP\n", result.P1Name, result.P1Health)
-	fmt.Printf("%s: %d HP\n", result.P2Name, result.P2Health)
-	
-	if playerID == 1 {
-		fmt.Printf("You dealt %d damage!\n", result.Damage)
-	} else {
-		fmt.Printf("You dealt %d damage!\n", result.Damage)
-	}
+    clearLine()
+    fmt.Println("\n=== BATTLE RESULT ===")
+    
+    // Show health from player's perspective
+    if playerID == 1 {
+        fmt.Printf("%s: %d HP\n", result.P1Name, result.P1Health)
+        fmt.Printf("%s: %d HP\n", result.P2Name, result.P2Health)
+    } else {
+        fmt.Printf("%s: %d HP\n", result.P2Name, result.P2Health)
+        fmt.Printf("%s: %d HP\n", result.P1Name, result.P1Health)
+    }
+
+    // Show damage dealt or defend action
+    if result.Damage > 0 {
+        opponent := result.P2Name
+        if playerID == 2 {
+            opponent = result.P1Name
+        }
+        fmt.Printf("You dealt %d damage to %s!\n", result.Damage, opponent)
+    } else {
+        fmt.Println("You defended!")
+    }
+    time.Sleep(800 * time.Millisecond) // Pause for readability
 }

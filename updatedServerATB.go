@@ -84,6 +84,55 @@ func defend(glad *Gladiator) {
 	glad.Defense += 5
 }
 
+func getGameState(w http.ResponseWriter, r *http.Request) {
+    lobbyID := r.URL.Query().Get("lobby_id")
+    lid, err := strconv.Atoi(lobbyID)
+    if err != nil {
+        http.Error(w, `{"error": "Invalid lobby ID"}`, http.StatusBadRequest)
+        return
+    }
+
+    mu.Lock()
+    lobby, exists := lobbies[lid]
+    mu.Unlock()
+    if !exists {
+        http.Error(w, `{"error": "Lobby not found"}`, http.StatusNotFound)
+        return
+    }
+
+    lobby.mu.Lock()
+    defer lobby.mu.Unlock()
+
+    // Update ATB gauges
+    now := time.Now()
+    elapsed := now.Sub(lobby.LastTickTime).Seconds()
+    lobby.LastTickTime = now
+
+    for i := 0; i < 2; i++ {
+        if lobby.Players[i] != nil {
+            lobby.AtbGauges[i] += int(float64(20-lobby.Players[i].Gladiator.Speed) * elapsed * 10)
+            if lobby.AtbGauges[i] > 100 {
+                lobby.AtbGauges[i] = 100
+            }
+        }
+    }
+
+    p1 := lobby.Players[0]
+    p2 := lobby.Players[1]
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "p1_name":   p1.Nickname,
+        "p2_name":   p2.Nickname,
+        "p1_health": p1.Gladiator.Health,
+        "p2_health": p2.Gladiator.Health,
+        "p1_atb":    lobby.AtbGauges[0],
+        "p2_atb":    lobby.AtbGauges[1],
+        "game_over": lobby.GameOver,
+        "winner":    lobby.Winner,
+    })
+}
+
 func createLobby(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 	defer mu.Unlock()
@@ -276,6 +325,7 @@ func main() {
 	http.HandleFunc("/create", createLobby)
 	http.HandleFunc("/join", joinLobby)
 	http.HandleFunc("/keypress", handleKeyPress)
+	http.HandleFunc("/gamestate", getGameState)
 
 	fmt.Println("Server running on http://146.94.10.168:8080")
 	log.Fatal(http.ListenAndServe("146.94.10.168:8080", nil))
