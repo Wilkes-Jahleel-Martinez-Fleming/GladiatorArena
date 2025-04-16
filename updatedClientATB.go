@@ -66,7 +66,7 @@ func createLobby() {
 	data := map[string]string{"password": password}
 	jsonData, _ := json.Marshal(data)
 
-	resp, err := http.Post("http://localhost:8080/create", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post("http://146.94.10.168:8080/create", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Println("Error creating lobby:", err)
 		return
@@ -105,7 +105,7 @@ func joinLobbyWithID(lobbyID int, password string) {
 	}
 	jsonData, _ := json.Marshal(data)
 
-	resp, err := http.Post("http://localhost:8080/join", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post("http://146.94.10.168:8080/join", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Println("Error joining lobby:", err)
 		return
@@ -178,7 +178,7 @@ func handleKeyPress(lobbyID, playerID int) {
 }
 
 func checkATB(lobbyID, playerID int) (bool, int, error) {
-	url := fmt.Sprintf("http://localhost:8080/keypress?player_id=%d&lobby_id=%d&check_atb=1", 
+	url := fmt.Sprintf("http://146.94.10.168:8080/keypress?player_id=%d&lobby_id=%d&check_atb=1", 
 		playerID, lobbyID)
 
 	resp, err := http.Get(url)
@@ -206,7 +206,7 @@ func checkATB(lobbyID, playerID int) (bool, int, error) {
 func submitMove(lobbyID, playerID int, move string) (*BattleResult, error) {
 	data := KeyPressData{Key: move}
 	jsonData, _ := json.Marshal(data)
-	url := fmt.Sprintf("http://localhost:8080/keypress?player_id=%d&lobby_id=%d", 
+	url := fmt.Sprintf("http://146.94.10.168:8080/keypress?player_id=%d&lobby_id=%d", 
 		playerID, lobbyID)
 
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))

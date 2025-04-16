@@ -277,6 +277,6 @@ func main() {
 	http.HandleFunc("/join", joinLobby)
 	http.HandleFunc("/keypress", handleKeyPress)
 
-	fmt.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("Server running on http://146.94.10.168:8080")
+	log.Fatal(http.ListenAndServe("146.94.10.168:8080", nil))
 }
