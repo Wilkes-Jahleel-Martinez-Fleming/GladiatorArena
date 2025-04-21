@@ -39,3 +39,6 @@ extra task for both:
 Bugs to fix. handle vicotry more gracefully when one player is not attacking.
 creating a lobby got double 8080 display
 do the defense to potion logic.
+
+04212025
+update when there is more than one player. on the PollgameState Function.
