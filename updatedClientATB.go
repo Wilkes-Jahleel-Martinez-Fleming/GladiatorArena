@@ -183,21 +183,18 @@ func handleKeyPress(lobbyID, playerID int) {
                 continue
             }
 
-	     // Using the restored function
-		
 	
+		
+	 if !result.GameOver {
+	    printBattleResult(result, playerID)
+	 	}
+	 
             // Check if game ended
             if result.GameOver {
-                clearLine()
-                if result.Winner == playerID {
-                    fmt.Println("\nVICTORY! You won the battle!")
-                } else {
-                    fmt.Println("\nDEFEAT! You were defeated!")
-                }
-                time.Sleep(2 * time.Second)
+             time.Sleep(2200 * time.Millisecond)
                 return
             }
-            printBattleResult(result, playerID)
+           
         }
     }
 }
@@ -290,9 +287,14 @@ func pollGameState(lobbyID, playerID int, gameOverChan chan bool, moveChan chan 
             if state.GameOver {
                 clearLine()
                 if state.Winner == playerID {
+                fmt.Println("\nYou struck first! Victory! You were The Winner!")
+                time.Sleep(1800 * time.Millisecond)
                     fmt.Println("\nTaking you back to Main Menu")
+                    
                 } else {
-                    fmt.Println("\nTaking you back to Main Menu")
+                fmt.Println("\nYour Opponent was Faster! DEFEAT! You were defeated!")
+                time.Sleep(1800 * time.Millisecond)
+                fmt.Println("\nTaking you back to Main Menu")
                 }
                 gameOverChan <- true
                 return

@@ -284,10 +284,10 @@ func handleKeyPress(w http.ResponseWriter, r *http.Request) {
 		dmg = resolveMove(p2, p1, keyPress.Key)
 	}
 
-	if p1.Gladiator.Health <= 0 {
+	if p1.Gladiator.Health <= 0 && p2.Gladiator.Health > 0 {
 		lobby.GameOver = true
 		lobby.Winner = 2
-	} else if p2.Gladiator.Health <= 0 {
+	} else if p2.Gladiator.Health <= 0 && p1.Gladiator.Health > 0 {
 		lobby.GameOver = true
 		lobby.Winner = 1
 	}
