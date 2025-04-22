@@ -103,6 +103,19 @@ func getGameState(w http.ResponseWriter, r *http.Request) {
     lobby.mu.Lock()
     defer lobby.mu.Unlock()
 
+
+if lobby.PlayerCount < 2 {
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(map[string]interface{}{
+            "waiting":   true,
+            "message":   "Waiting for opponent",
+            "game_over": false,
+        })
+        return
+    }
+
+
+
     // Update ATB gauges
     now := time.Now()
     elapsed := now.Sub(lobby.LastTickTime).Seconds()
