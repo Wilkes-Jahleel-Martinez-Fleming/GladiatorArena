@@ -1,44 +1,34 @@
-1.0 VERSION are files: updatedClient.go and updatedServer.go
+How to Run
 
-2.0 VERSION with ATB combat are files: updatedClientATB.go and updatedServerATB.go
+Prerequisites
+    • - Go 1.18+ installed
 
+Server
+1. Open a terminal.
+2. Navigate to the directory containing `updatedServerATB.go`.
+-Modify file to use local IP address. (optional) 
+3. Run the server with:
+   go run updatedServerATB.go
 
-This README will be updated with progress.
+Client
+1. Open a new terminal window.
+2. Navigate to the directory containing `updatedClientATB.go`.
+-Modify file to use local IP address. (optional) 
+3. Run the client with:
+   go run updatedClientATB.go
 
-added first revision of code as separate instances. next step is to implement code together to create simple game simulation between 2 players.
+How It Works
 
-04/10/2025
-polish more client and QoL for user experience. look into more robust changes.
-implement web interface for the game.
-allow nickname instead of player 1, 2, etc
+Server
+    • - Manages game states, players, and lobbies.
+    • - Uses goroutines to handle each HTTP request concurrently.
+    • - Updates the ATB bars on a timed loop in the background.
 
-04/11/2025
-Andrew's Tasks
+Client
+    • - Continuously polls the server to get updated game state using a goroutine.
+    • - Displays the player's current status and accepts input during ATB activation.
 
-Change Defense logic on gameproto.go
-add dmg value to gladiator struct
-use that dmg value in the attack, powattack and defend functions
-remove the health changing inside of the attack moves
-change defense to be half the value of dmg in gladiator struct
-apply a execute move func that just changes the health value based on the dmg.
-
-
-Jahleel's Tasks
-
-1)based on the updates that andrew do to the gameproto.go
-change the move logic to be more robust and in line with Andrew's Changes.
-2)(DONE)Add a display of gladiator values for each player such as their stats.
-3)change their nickname on the client. and server so instead of p1 p2 it would be more custumizable.
-4)add 2sec delay per message on client console.
-
-extra task for both:
-
-1)Allow each player to pick from 10 random gladiators generated for their 1 vs 1 battle.
-
-04/15/2025
-Bugs to fix. handle vicotry more gracefully when one player is not attacking.
-creating a lobby got double 8080 display
-do the defense to potion logic.
-
-04212025
-update when there is more than one player. on the PollgameState Function.
+Concurrency Details
+    • - Goroutines manage polling and game ticking independently.
+    • - Channels are used to pause/resume polling during player input.
+    • - Shared data is protected with `sync.Mutex` to prevent race conditions.
