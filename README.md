@@ -1,5 +1,9 @@
 How to Run
 
+either Run UpdatedClient.go with UpdatedServer.go 
+OR
+updatedClientATB.go with updatedServerATB.go
+
 Prerequisites
     • - Go 1.18+ installed
 
